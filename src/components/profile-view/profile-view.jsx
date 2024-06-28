@@ -1,155 +1,184 @@
 import React, { useState, useEffect } from 'react';
-import { Col, Button, Form, Card } from 'react-bootstrap';
+import { Row, Col, Card, Form, Button } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
 
-export const ProfileView = ({ user, movies, onUpdateUser, onDeregister, onAddFavorite, onRemoveFavorite }) => {
-    const [userData, setUserData] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    const [email, setEmail] = useState('');
-    const [dob, setDob] = useState('');
+export const ProfileView = ({ user, movies, onUpdateUser, onLogout, onAddFavorite, onRemoveFavorite }) => {
+    const [isLoadingProfile, setLoadingProfile] = useState(true);
+    const [updatedUser, setUpdatedUser] = useState({ ...user, FavoriteMovies: [] }); // Initialize FavoriteMovies array
+    const [editMode, setEditMode] = useState(false);
 
     useEffect(() => {
-        const fetchUserData = async () => {
-            try {
-                const response = await fetch(`https://your-backend-api-url/users/${user.username}`, {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem('token')}`,
-                    },
-                });
-                if (!response.ok) {
-                    throw new Error('Failed to fetch user data');
-                }
-                const data = await response.json();
-                setUserData(data);
-                setUsername(data.username);
-                setEmail(data.email);
-                setDob(data.dob);
-                setLoading(false);
-            } catch (error) {
-                setError(error.message);
-                setLoading(false);
+        setLoadingProfile(true);
+        fetchUserProfile(user.username);
+    }, [user]);
+
+    const fetchUserProfile = async (username) => {
+        try {
+            const response = await fetch(`https://moviesflix-hub-fca46ebf9888.herokuapp.com/users/${username}`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                },
+            });
+            if (!response.ok) {
+                throw new Error('Failed to fetch user profile');
             }
-        };
+            const userData = await response.json();
+            setUpdatedUser(userData);
+            setLoadingProfile(false);
+        } catch (error) {
+            console.error('Error fetching user profile:', error);
+            setLoadingProfile(false);
+        }
+    };
 
-        fetchUserData();
-    }, [user.username]);
-
-    const handleUpdate = async (e) => {
+    const handleUpdateProfile = async (e) => {
         e.preventDefault();
         try {
-            const response = await fetch(`https://your-backend-api-url/users/${user.username}`, {
+            const response = await fetch(`https://moviesflix-hub-fca46ebf9888.herokuapp.com/users/${user.username}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${localStorage.getItem('token')}`,
                 },
-                body: JSON.stringify({ username, password, email, dob }),
+                body: JSON.stringify(updatedUser),
             });
             if (!response.ok) {
-                throw new Error('Failed to update user data');
+                throw new Error('Failed to update user profile');
             }
-            onUpdateUser({ username, email, dob });
-            alert('User information updated successfully!');
+            const updatedUserData = await response.json();
+            onUpdateUser(updatedUserData);
+            setEditMode(false);
         } catch (error) {
-            console.error('Error updating user:', error);
-            alert('Failed to update user information. Please try again.');
+            console.error('Error updating user profile:', error);
+            alert('Failed to update user profile. Please try again.');
         }
     };
 
-    const handleDeregister = async () => {
-        if (window.confirm('Are you sure you want to deregister? This action cannot be undone.')) {
-            try {
-                const response = await fetch(`https://your-backend-api-url/users/${user.username}`, {
-                    method: 'DELETE',
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem('token')}`,
-                    },
-                });
-                if (!response.ok) {
-                    throw new Error('Failed to deregister user');
-                }
-                onDeregister();
-                alert('User deregistered successfully.');
-                localStorage.removeItem('user');
-                localStorage.removeItem('token');
-                window.location.href = '/login';
-            } catch (error) {
-                console.error('Error deregistering user:', error);
-                alert('Failed to deregister user. Please try again.');
-            }
+    const handleFavoriteClick = (movieId) => {
+        const isFavorite = updatedUser.FavoriteMovies.includes(movieId);
+        if (isFavorite) {
+            onRemoveFavorite(movieId);
+        } else {
+            onAddFavorite(movieId);
         }
     };
 
-    const handleAddFavorite = (movieId) => {
-        onAddFavorite(movieId);
+    const toggleEditMode = () => {
+        setEditMode(!editMode);
     };
 
-    const handleRemoveFavorite = (movieId) => {
-        onRemoveFavorite(movieId);
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setUpdatedUser({ ...updatedUser, [name]: value });
     };
 
-    if (loading) {
-        return <Col>Loading...</Col>;
+    if (isLoadingProfile) {
+        return <Col>Loading Profile...</Col>;
     }
-
-    if (error) {
-        return <Col>Error: {error}</Col>;
-    }
-
-    if (!userData) {
-        return null;
-    }
-
-    // Filter movies to display only favorite movies
-    const favoriteMovies = movies.filter(movie => userData.favoriteMovies.includes(movie._id));
 
     return (
         <Col md={8}>
-            <h2>Profile Information</h2>
-            <Form onSubmit={handleUpdate}>
-                <Form.Group controlId="formUsername">
-                    <Form.Label>Username</Form.Label>
-                    <Form.Control type="text" placeholder="Enter username" value={username} onChange={(e) => setUsername(e.target.value)} required />
-                </Form.Group>
-                <Form.Group controlId="formPassword">
-                    <Form.Label>Password</Form.Label>
-                    <Form.Control type="password" placeholder="Enter new password" value={password} onChange={(e) => setPassword(e.target.value)} />
-                </Form.Group>
-                <Form.Group controlId="formEmail">
-                    <Form.Label>Email address</Form.Label>
-                    <Form.Control type="email" placeholder="Enter email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-                </Form.Group>
-                <Form.Group controlId="formDob">
-                    <Form.Label>Date of Birth</Form.Label>
-                    <Form.Control type="date" value={dob} onChange={(e) => setDob(e.target.value)} required />
-                </Form.Group>
-                <Button variant="primary" type="submit">
-                    Update Profile
-                </Button>
-            </Form>
-            <Button variant="danger" className="ml-3" onClick={handleDeregister}>
-                Deregister
-            </Button>
+            <Card>
+                <Card.Body>
+                    <Card.Title>Profile Information</Card.Title>
+                    <Form onSubmit={handleUpdateProfile}>
+                        <Form.Group as={Row} className="mb-3">
+                            <Form.Label column sm={3}>
+                                Username
+                            </Form.Label>
+                            <Col sm={9}>
+                                <Form.Control
+                                    type="text"
+                                    name="username"
+                                    value={updatedUser.username}
+                                    readOnly={!editMode}
+                                    onChange={handleChange}
+                                />
+                            </Col>
+                        </Form.Group>
+                        <Form.Group as={Row} className="mb-3">
+                            <Form.Label column sm={3}>
+                                Email
+                            </Form.Label>
+                            <Col sm={9}>
+                                <Form.Control
+                                    type="email"
+                                    name="email"
+                                    value={updatedUser.email}
+                                    readOnly={!editMode}
+                                    onChange={handleChange}
+                                />
+                            </Col>
+                        </Form.Group>
+                        <Form.Group as={Row} className="mb-3">
+                            <Form.Label column sm={3}>
+                                Date of Birth
+                            </Form.Label>
+                            <Col sm={9}>
+                                <Form.Control
+                                    type="date"
+                                    name="birthdate"
+                                    value={updatedUser.birthdate}
+                                    readOnly={!editMode}
+                                    onChange={handleChange}
+                                />
+                            </Col>
+                        </Form.Group>
+                        {editMode ? (
+                            <div className="text-end">
+                                <Button variant="secondary" className="me-2" onClick={toggleEditMode}>
+                                    Cancel
+                                </Button>
+                                <Button type="submit">Save Changes</Button>
+                            </div>
+                        ) : (
+                            <Button variant="primary" onClick={toggleEditMode}>
+                                Edit Profile
+                            </Button>
+                        )}
+                    </Form>
+                </Card.Body>
+            </Card>
 
-            <h3 className="mt-4">Favorite Movies</h3>
-            {favoriteMovies.length > 0 ? (
-                <div>
-                    {favoriteMovies.map(movie => (
-                        <Card key={movie._id} className="mb-3">
-                            <Card.Body>
-                                <Card.Title>{movie.title}</Card.Title>
-                                <Card.Text>Year: {movie.year}</Card.Text>
-                                <Button variant="danger" onClick={() => handleRemoveFavorite(movie._id)}>Remove from Favorites</Button>
-                            </Card.Body>
-                        </Card>
-                    ))}
-                </div>
-            ) : (
-                <p>No favorite movies added.</p>
-            )}
+            <Card className="mt-4">
+                <Card.Body>
+                    <Card.Title>Favorite Movies</Card.Title>
+                    {updatedUser.FavoriteMovies && updatedUser.FavoriteMovies.length === 0 ? (
+                        <p>No favorite movies selected.</p>
+                    ) : (
+                        <Row xs={1} md={2} lg={3} className="g-4">
+                            {movies
+                                .filter((movie) => updatedUser.FavoriteMovies.includes(movie._id))
+                                .map((movie) => (
+                                    <Col key={movie._id}>
+                                        <Card>
+                                            <Card.Img variant="top" src={movie.ImagePath} />
+                                            <Card.Body>
+                                                <Card.Title>{movie.Title}</Card.Title>
+                                                <Button
+                                                    variant="outline-danger"
+                                                    onClick={() => handleFavoriteClick(movie._id)}
+                                                >
+                                                    {updatedUser.FavoriteMovies.includes(movie._id)
+                                                        ? 'Remove from Favorites'
+                                                        : 'Add to Favorites'}
+                                                </Button>
+                                            </Card.Body>
+                                        </Card>
+                                    </Col>
+                                ))}
+                        </Row>
+                    )}
+                </Card.Body>
+            </Card>
+
+            <div className="text-end mt-4">
+                <Button variant="danger" onClick={onLogout}>
+                    Logout
+                </Button>
+            </div>
         </Col>
     );
 };
+
 

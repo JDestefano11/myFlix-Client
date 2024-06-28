@@ -68,7 +68,7 @@ export const MainView = () => {
 
     const handleAddFavorite = async (movieId) => {
         try {
-            const response = await fetch(`https://your-backend-api-url/users/${user.username}/favoriteMovies`, {
+            const response = await fetch(`https://moviesflix-hub-fca46ebf9888.herokuapp.com/users/${user.username}/favoriteMovies`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -89,7 +89,7 @@ export const MainView = () => {
 
     const handleRemoveFavorite = async (movieId) => {
         try {
-            const response = await fetch(`https://your-backend-api-url/users/${user.username}/favoriteMovies/${movieId}`, {
+            const response = await fetch(`https://moviesflix-hub-fca46ebf9888.herokuapp.com/users/${user.username}/favoriteMovies/${movieId}`, {
                 method: 'DELETE',
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('token')}`,
