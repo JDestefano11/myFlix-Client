@@ -5,6 +5,7 @@ import { LoginView } from '../login-view/login-view';
 import { SignupView } from '../signup-view/signup-view';
 import { Row, Col } from 'react-bootstrap';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate, useParams } from 'react-router-dom';
+import { NavigationBar } from '../navigation-bar/navigation-bar';
 
 export const MainView = () => {
     const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')));
@@ -56,10 +57,12 @@ export const MainView = () => {
         localStorage.removeItem('user');
         localStorage.removeItem('token');
         setMovies([]);
+        return <Navigate to="/login" />;
     };
 
     return (
         <Router>
+            <NavigationBar user={user} onLoggedOut={handleLogout} />
             <Row className="justify-content-md-center">
                 <Routes>
                     <Route path="/signup" element={user ? <Navigate to="/" /> : <Col md={5}><SignupView onSignup={handleLogin} /></Col>} />
@@ -78,7 +81,7 @@ const MovieList = ({ movies, isLoading }) => {
     }
 
     if (movies.length === 0) {
-        return <Col>The movie list is empty!</Col>;
+        return <Navigate to="/signup" />;
     }
 
     return (
