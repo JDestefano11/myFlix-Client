@@ -66,6 +66,7 @@ export const MainView = () => {
             <NavigationBar user={user} onLoggedOut={handleLogout} />
             <Row className="justify-content-md-center">
                 <Routes>
+                    {!user && <Route path="/" element={<Navigate to="/login" />} />}
                     <Route path="/signup" element={user ? <Navigate to="/" /> : <Col md={5}><SignupView onSignup={handleLogin} /></Col>} />
                     <Route path="/login" element={user ? <Navigate to="/" /> : <Col md={5}><LoginView onLoggedIn={handleLogin} /></Col>} />
                     <Route path="/" element={<MovieList movies={movies} isLoading={isLoadingMovies} />} />
