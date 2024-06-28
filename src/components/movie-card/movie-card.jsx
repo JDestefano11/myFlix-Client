@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Card } from 'react-bootstrap';
+import { Card } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 
 export const MovieCard = ({ movie }) => {
@@ -14,9 +14,9 @@ export const MovieCard = ({ movie }) => {
     };
 
     const imageStyles = {
-        height: '350px', // Fixed height for the movie poster
-        objectFit: 'cover', // Cover to maintain aspect ratio
-        borderTopLeftRadius: '10px', // Rounded corners for top
+        height: '350px',
+        objectFit: 'cover',
+        borderTopLeftRadius: '10px',
         borderTopRightRadius: '10px',
     };
 
@@ -25,9 +25,13 @@ export const MovieCard = ({ movie }) => {
             <Card.Img variant="top" src={movie.ImageUrl} alt={movie.Title} style={imageStyles} />
             <Card.Body>
                 <Card.Title>{movie.Title}</Card.Title>
-                <Card.Text>Genre: {movie.Genre.Name}</Card.Text>
-                <Link to={`/movies/${encodeURIComponent(movie.Title.toLowerCase())}`} className="btn-link" style={{ color: '#FFFFFF' }}>
-                    Open
+                <Card.Text>
+                    Genre: {movie.Genre.Name}
+                </Card.Text>
+                <Link to={`/movies/${encodeURIComponent(movie.Title.toLowerCase())}`} style={{ textDecoration: 'none', color: '#f0f0f0' }}>
+                    <button className="btn-link" style={{ color: '#007bff', textDecoration: 'none', cursor: 'pointer', border: 'none', background: 'none' }}>
+                        Open
+                    </button>
                 </Link>
             </Card.Body>
         </Card>
