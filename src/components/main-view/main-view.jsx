@@ -4,11 +4,11 @@ import { MovieView } from '../movie-view/movie-view';
 import { LoginView } from '../login-view/login-view';
 import { SignupView } from '../signup-view/signup-view';
 import { Row, Col } from 'react-bootstrap';
+import { BrowserRouter as Router, Routes, Route, Link, Navigate, useParams } from 'react-router-dom';
 
 export const MainView = () => {
     const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')));
     const [movies, setMovies] = useState([]);
-    const [selectedMovie, setSelectedMovie] = useState(null);
     const [isLoadingMovies, setLoadingMovies] = useState(false);
 
     useEffect(() => {
@@ -41,7 +41,6 @@ export const MainView = () => {
         } catch (error) {
             console.error('Error fetching movies:', error);
             setLoadingMovies(false);
-            // Handle error (e.g., show error message)
         }
     };
 
@@ -56,46 +55,57 @@ export const MainView = () => {
         setUser(null);
         localStorage.removeItem('user');
         localStorage.removeItem('token');
-        setMovies([]); // Clear movies when logging out
-        setSelectedMovie(null); // Reset selected movie when logging out
-    };
-
-    const handleMovieClick = (movieData) => {
-        setSelectedMovie(movieData);
+        setMovies([]);
     };
 
     return (
-        <Row className="justify-content-center">
-            {!user ? (
-                <Col md={4}>
-                    <LoginView onLoggedIn={handleLogin} />
-                    <SignupView onSignup={(userData, authToken) => handleLogin(userData, authToken)} />
-                </Col>
-            ) : (
-                <Col md={8}>
-                    <div>
-                        <button onClick={handleLogout}>Logout</button>
-                    </div>
-                    {selectedMovie ? (
-                        <MovieView movie={selectedMovie} onBackClick={() => setSelectedMovie(null)} />
-                    ) : (
-                        <Row xs={1} sm={2} md={3} lg={4} xl={5} className="g-4">
-                            {isLoadingMovies ? (
-                                <div>Loading...</div>
-                            ) : movies.length === 0 ? (
-                                <div>The movie list is empty</div>
-                            ) : (
-                                movies.map((movie) => (
-                                    <MovieCard
-                                        movie={movie}
-                                        onMovieClick={() => handleMovieClick(movie)}
-                                    />
-                                ))
-                            )}
-                        </Row>
-                    )}
-                </Col>
-            )}
-        </Row>
+        <Router>
+            <Row className="justify-content-md-center">
+                <Routes>
+                    <Route path="/signup" element={user ? <Navigate to="/" /> : <Col md={5}><SignupView onSignup={handleLogin} /></Col>} />
+                    <Route path="/login" element={user ? <Navigate to="/" /> : <Col md={5}><LoginView onLoggedIn={handleLogin} /></Col>} />
+                    <Route path="/" element={<MovieList movies={movies} isLoading={isLoadingMovies} />} />
+                    <Route path="/movies/:title" element={<MovieDetails movies={movies} />} />
+                </Routes>
+            </Row>
+        </Router>
     );
 };
+
+const MovieList = ({ movies, isLoading }) => {
+    if (isLoading) {
+        return <Col>Loading...</Col>;
+    }
+
+    if (movies.length === 0) {
+        return <Col>The movie list is empty!</Col>;
+    }
+
+    return (
+        <>
+            {movies.map((movie) => (
+                <Col className="mb-4" key={movie._id} md={3}>
+                    <Link to={`/movies/${encodeURIComponent(movie.Title.toLowerCase())}`}>
+                        <MovieCard movie={movie} />
+                    </Link>
+                </Col>
+            ))}
+        </>
+    );
+};
+
+const MovieDetails = ({ movies }) => {
+    const { title } = useParams();
+    const movie = movies.find((movie) => movie.Title.toLowerCase() === decodeURIComponent(title.toLowerCase()));
+
+    if (!movie) {
+        return <Navigate to="/" />;
+    }
+
+    return (
+        <Col md={8}>
+            <MovieView movie={movie} />
+        </Col>
+    );
+};
+

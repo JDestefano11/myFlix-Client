@@ -1,11 +1,8 @@
 import React from 'react';
 import { Button, Card } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
 
-export const MovieCard = ({ movie, onMovieClick }) => {
-    const handleHardClick = () => {
-        onMovieClick(movie);
-    };
-
+export const MovieCard = ({ movie }) => {
     const cardStyles = {
         width: '250px',
         marginBottom: '20px',
@@ -28,13 +25,13 @@ export const MovieCard = ({ movie, onMovieClick }) => {
             <Card.Img variant="top" src={movie.ImageUrl} alt={movie.Title} style={imageStyles} />
             <Card.Body>
                 <Card.Title>{movie.Title}</Card.Title>
-                <Card.Text>
-                    Genre: {movie.Genre.Name}
-                </Card.Text>
-                <Button onClick={() => onMovieClick(movie)} variant="link" className="btn-link" style={{ color: '#007bff' }}>
+                <Card.Text>Genre: {movie.Genre.Name}</Card.Text>
+                <Link to={`/movies/${encodeURIComponent(movie.Title.toLowerCase())}`} className="btn-link" style={{ color: '#FFFFFF' }}>
                     Open
-                </Button>
+                </Link>
             </Card.Body>
         </Card>
     );
 };
+
+

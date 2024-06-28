@@ -2,7 +2,7 @@ import React from 'react';
 import { Container, Row, Col } from 'react-bootstrap';
 import "./movie-view.scss";
 
-export const MovieView = ({ movie, onBackClick }) => {
+export const MovieView = ({ movie }) => {
     return (
         <div className="movie-view">
             <Container>
@@ -34,12 +34,8 @@ export const MovieView = ({ movie, onBackClick }) => {
                     </Col>
                 </Row>
             </Container>
-            <button onClick={onBackClick}
-                className="back-button"
-                style={{ cursor: "pointer" }}
-            >
-                Back
-            </button>
         </div>
     );
 };
+
+
