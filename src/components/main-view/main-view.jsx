@@ -50,6 +50,7 @@ export const MainView = () => {
         localStorage.setItem('user', JSON.stringify(userData));
         localStorage.setItem('token', authToken);
         fetchMovies();
+        window.location.href = '/'; // Navigate to homepage after login
     };
 
     const handleLogout = () => {
@@ -57,7 +58,7 @@ export const MainView = () => {
         localStorage.removeItem('user');
         localStorage.removeItem('token');
         setMovies([]);
-        return <Navigate to="/login" />;
+        window.location.href = '/login'; // Navigate to login page after logout
     };
 
     return (
@@ -81,7 +82,7 @@ const MovieList = ({ movies, isLoading }) => {
     }
 
     if (movies.length === 0) {
-        return <Navigate to="/signup" />;
+        return <Col>The movie list is empty!</Col>;
     }
 
     return (
@@ -111,4 +112,3 @@ const MovieDetails = ({ movies }) => {
         </Col>
     );
 };
-
