@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Button, Form } from 'react-bootstrap';
-import './login-view.scss'; // Import SCSS file for styling
+import { Link } from 'react-router-dom';
+import './login-view.scss';
 
 export const LoginView = ({ onLoggedIn, switchToSignup }) => {
     const [username, setUsername] = useState('');
@@ -80,7 +81,8 @@ export const LoginView = ({ onLoggedIn, switchToSignup }) => {
 
                 <div className="signup-link">
                     <span className="signup-text">New to MoviesFlix? </span>
-                    <span className="signup-link-text" onClick={switchToSignup}>Sign up now.</span>
+                    {/* Use Link to navigate to signup page */}
+                    <Link to="/signup" className="signup-link-text">Sign up now.</Link>
                 </div>
             </div>
         </div>
