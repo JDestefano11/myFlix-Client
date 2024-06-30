@@ -15,11 +15,16 @@ export const NavigationBar = ({ user, onLoggedOut }) => {
                     <Nav className="me-auto">
                         {/* Add Links here */}
                     </Nav>
-                    <Nav className="ml-auto">
+                    <Nav className="ml-auto d-flex align-items-center">
                         {user ? (
-                            <Button variant="outline-light" onClick={onLoggedOut} className="logout-button">
-                                Logout
-                            </Button>
+                            <>
+                                <Link to="/profile" className="text-light me-3">
+                                    Profile
+                                </Link>
+                                <Button variant="outline-light" onClick={onLoggedOut}>
+                                    Logout
+                                </Button>
+                            </>
                         ) : (
                             <>
                                 <Nav.Link as={Link} to="/login" className="nav-link">
@@ -36,3 +41,4 @@ export const NavigationBar = ({ user, onLoggedOut }) => {
         </Navbar>
     );
 };
+
