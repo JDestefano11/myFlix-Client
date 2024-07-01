@@ -17,26 +17,28 @@ export const MainView = () => {
         const storedUser = JSON.parse(localStorage.getItem('user'));
         if (storedUser) {
             setUser(storedUser);
+            fetchMovies(); // Fetch movies if user is logged in
         }
     }, []);
-
-    useEffect(() => {
-        if (user) {
-            fetchMovies();
-        }
-    }, [user]);
 
     const fetchMovies = async () => {
         setLoadingMovies(true);
         try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                throw new Error('User token not found. Please log in.');
+            }
+
             const response = await fetch('https://moviesflix-hub-fca46ebf9888.herokuapp.com/movies', {
                 headers: {
-                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                    Authorization: `Bearer ${token}`,
                 },
             });
+
             if (!response.ok) {
                 throw new Error('Failed to fetch movies');
             }
+
             const data = await response.json();
             setMovies(data);
             setLoadingMovies(false);
@@ -51,7 +53,7 @@ export const MainView = () => {
         localStorage.setItem('user', JSON.stringify(userData));
         localStorage.setItem('token', authToken);
         fetchMovies();
-        window.location.href = '/'; // Navigate to homepage after login (change later)
+        return <Navigate to="/movies" />;
     };
 
     const handleLogout = () => {
@@ -59,7 +61,7 @@ export const MainView = () => {
         localStorage.removeItem('user');
         localStorage.removeItem('token');
         setMovies([]);
-        window.location.href = '/login'; // Navigate to login page after logout
+        return <Navigate to="/login" />;
     };
 
     const handleUpdateUser = (updatedUserData) => {
@@ -68,17 +70,24 @@ export const MainView = () => {
 
     const handleAddFavorite = async (movieId) => {
         try {
-            const response = await fetch(`https://your-backend-api-url/users/${user.username}/favoriteMovies`, {
+            if (!user || !user.username) {
+                throw new Error('User information is missing. Please log in again.');
+            }
+
+            const token = localStorage.getItem('token');
+            const response = await fetch(`https://moviesflix-hub-fca46ebf9888.herokuapp.com/users/${user.username}/favoriteMovies`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                    Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify({ movieId }),
             });
+
             if (!response.ok) {
                 throw new Error('Failed to add favorite movie');
             }
+
             const updatedUser = await response.json();
             setUser(updatedUser);
         } catch (error) {
@@ -89,15 +98,22 @@ export const MainView = () => {
 
     const handleRemoveFavorite = async (movieId) => {
         try {
-            const response = await fetch(`https://your-backend-api-url/users/${user.username}/favoriteMovies/${movieId}`, {
+            if (!user || !user.username) {
+                throw new Error('User information is missing. Please log in again.');
+            }
+
+            const token = localStorage.getItem('token');
+            const response = await fetch(`https://moviesflix-hub-fca46ebf9888.herokuapp.com/users/${user.username}/favoriteMovies/${movieId}`, {
                 method: 'DELETE',
                 headers: {
-                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                    Authorization: `Bearer ${token}`,
                 },
             });
+
             if (!response.ok) {
                 throw new Error('Failed to remove favorite movie');
             }
+
             const updatedUser = await response.json();
             setUser(updatedUser);
         } catch (error) {
@@ -115,7 +131,7 @@ export const MainView = () => {
                     <Route path="/signup" element={user ? <Navigate to="/" /> : <Col md={5}><SignupView onSignup={handleLogin} /></Col>} />
                     <Route path="/login" element={user ? <Navigate to="/" /> : <Col md={5}><LoginView onLoggedIn={handleLogin} /></Col>} />
                     <Route path="/" element={<MovieListView movies={movies} isLoading={isLoadingMovies} />} />
-                    <Route path="/movies/:title" element={<MovieDetailsView movies={movies} />} />
+                    <Route path="/movies/:title" element={<MovieDetailsView movies={movies} onAddFavorite={handleAddFavorite} onRemoveFavorite={handleRemoveFavorite} />} />
                     <Route path="/profile" element={<ProfileView user={user} movies={movies} onUpdateUser={handleUpdateUser} onLogout={handleLogout} onAddFavorite={handleAddFavorite} onRemoveFavorite={handleRemoveFavorite} />} />
                 </Routes>
             </Row>
@@ -145,7 +161,7 @@ const MovieListView = ({ movies, isLoading }) => {
     );
 };
 
-const MovieDetailsView = ({ movies }) => {
+const MovieDetailsView = ({ movies, onAddFavorite, onRemoveFavorite }) => {
     const { title } = useParams();
     const movie = movies.find((movie) => movie.Title.toLowerCase() === decodeURIComponent(title.toLowerCase()));
 
@@ -154,6 +170,6 @@ const MovieDetailsView = ({ movies }) => {
     }
 
     return (
-        <MovieView movie={movie} />
+        <MovieView movie={movie} onAddFavorite={onAddFavorite} onRemoveFavorite={onRemoveFavorite} />
     );
 };
